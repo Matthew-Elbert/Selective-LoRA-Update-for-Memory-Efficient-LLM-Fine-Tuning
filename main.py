@@ -407,52 +407,52 @@ def train_lora_model():
         'total_params': total_params
     }
 
-def plot_training_results(train_losses, val_accuracies, test_accuracy, class_names, report):
-    """Plot training and evaluation results"""
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
+# def plot_training_results(train_losses, val_accuracies, test_accuracy, class_names, report):
+#     """Plot training and evaluation results"""
+#     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
     
-    # Plot 1: Training loss
-    ax1.plot(train_losses, label='Training Loss', linewidth=2, color='blue')
-    ax1.set_xlabel('Epoch')
-    ax1.set_ylabel('Training Loss')
-    ax1.set_title('Training Loss Over Epochs')
-    ax1.legend()
-    ax1.grid(True, alpha=0.3)
+#     # Plot 1: Training loss
+#     ax1.plot(train_losses, label='Training Loss', linewidth=2, color='blue')
+#     ax1.set_xlabel('Epoch')
+#     ax1.set_ylabel('Training Loss')
+#     ax1.set_title('Training Loss Over Epochs')
+#     ax1.legend()
+#     ax1.grid(True, alpha=0.3)
     
-    # Plot 2: Validation accuracy
-    ax2.plot(val_accuracies, label='Validation Accuracy', linewidth=2, color='green')
-    ax2.set_xlabel('Epoch')
-    ax2.set_ylabel('Validation Accuracy')
-    ax2.set_title('Validation Accuracy Over Epochs')
-    ax2.legend()
-    ax2.grid(True, alpha=0.3)
+#     # Plot 2: Validation accuracy
+#     ax2.plot(val_accuracies, label='Validation Accuracy', linewidth=2, color='green')
+#     ax2.set_xlabel('Epoch')
+#     ax2.set_ylabel('Validation Accuracy')
+#     ax2.set_title('Validation Accuracy Over Epochs')
+#     ax2.legend()
+#     ax2.grid(True, alpha=0.3)
     
-    # Plot 3: Test accuracy
-    ax3.bar(['Test Accuracy'], [test_accuracy], color='orange', alpha=0.7)
-    ax3.set_ylabel('Accuracy')
-    ax3.set_title('Final Test Accuracy')
-    ax3.text(0, test_accuracy + 0.01, f'{test_accuracy:.4f}', 
-             ha='center', va='bottom', fontweight='bold')
-    ax3.set_ylim(0, 1.0)
+#     # Plot 3: Test accuracy
+#     ax3.bar(['Test Accuracy'], [test_accuracy], color='orange', alpha=0.7)
+#     ax3.set_ylabel('Accuracy')
+#     ax3.set_title('Final Test Accuracy')
+#     ax3.text(0, test_accuracy + 0.01, f'{test_accuracy:.4f}', 
+#              ha='center', va='bottom', fontweight='bold')
+#     ax3.set_ylim(0, 1.0)
     
-    # Plot 4: Per-class F1 scores
-    f1_scores = [report[class_name]['f1-score'] for class_name in class_names]
-    bars = ax4.bar(class_names, f1_scores, color=['skyblue', 'lightcoral', 'lightgreen', 'gold'])
-    ax4.set_xlabel('News Categories')
-    ax4.set_ylabel('F1 Score')
-    ax4.set_title('Per-class F1 Scores')
-    ax4.set_ylim(0, 1.0)
+#     # Plot 4: Per-class F1 scores
+#     f1_scores = [report[class_name]['f1-score'] for class_name in class_names]
+#     bars = ax4.bar(class_names, f1_scores, color=['skyblue', 'lightcoral', 'lightgreen', 'gold'])
+#     ax4.set_xlabel('News Categories')
+#     ax4.set_ylabel('F1 Score')
+#     ax4.set_title('Per-class F1 Scores')
+#     ax4.set_ylim(0, 1.0)
     
-    # Add value labels on bars
-    for bar, f1 in zip(bars, f1_scores):
-        ax4.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01,
-                f'{f1:.4f}', ha='center', va='bottom')
+#     # Add value labels on bars
+#     for bar, f1 in zip(bars, f1_scores):
+#         ax4.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01,
+#                 f'{f1:.4f}', ha='center', va='bottom')
     
-    plt.tight_layout()
+#     plt.tight_layout()
     
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    plt.savefig(f'lora_ag_news_results_{timestamp}.png', dpi=300, bbox_inches='tight')
-    plt.show()
+#     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+#     plt.savefig(f'lora_ag_news_results_{timestamp}.png', dpi=300, bbox_inches='tight')
+#     plt.show()
 
 def print_training_summary(results):
     """Print detailed training summary"""
