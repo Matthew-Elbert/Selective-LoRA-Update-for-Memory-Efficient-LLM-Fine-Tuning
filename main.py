@@ -11,6 +11,7 @@ import seaborn as sns
 from datetime import datetime
 import json
 import pandas as pd
+from tqdm import tqdm
 
 
 # Check if CUDA is available and set device
@@ -104,9 +105,9 @@ class LoRATransformerWrapper(nn.Module):
         super().__init__()
         
         # Load pre-trained model and tokenizer
-        self.config = AutoConfig.from_pretrained(model_name)
-        self.model = AutoModel.from_pretrained(model_name)
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.config = AutoConfig.from_pretrained(model_name, force_download=True)
+        self.model = AutoModel.from_pretrained(model_name, force_download=True)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name, force_download=True)
         
         # Add padding token if not present
         if self.tokenizer.pad_token is None:
@@ -208,16 +209,19 @@ def prepare_dataset(tokenizer, split='train', num_samples=None):
     if num_samples:
         df = df.sample(n=num_samples, random_state=42)
 
+    # FIX: AG News dataset has 'text' column, not 'title'
+    texts = list(df['title'])  # Changed from 'title' to 'text'
+    
     # Tokenize the text
     tokenized_inputs = tokenizer(
-        list(df['title']),
+        texts,  # Use the corrected variable
         padding='max_length',
         truncation=True,
-        max_length=128,  # Adjust if necessary
+        max_length=128,
         return_tensors="pt"
     )
 
-    # Create a Pytorch dataset
+    # Create a PyTorch dataset
     input_ids = tokenized_inputs['input_ids']
     attention_mask = tokenized_inputs['attention_mask']
     labels = torch.tensor(df['label'].values)
@@ -234,17 +238,21 @@ def evaluate_model(model, dataloader, criterion):
     
     with torch.no_grad():
         for batch in dataloader:
-            batch = {k: v.to(device) for k, v in batch.items()}
+            # FIX: The batch is a tuple, not a dictionary
+            input_ids, attention_mask, labels = batch
+            input_ids = input_ids.to(device)
+            attention_mask = attention_mask.to(device)
+            labels = labels.to(device)
             
-            outputs = model(input_ids=batch['input_ids'], attention_mask=batch['attention_mask'])
-            loss = criterion(outputs, batch['labels'])
+            outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+            loss = criterion(outputs, labels)
             
-            total_loss += loss.item() * batch['input_ids'].size(0)
-            total_samples += batch['input_ids'].size(0)
+            total_loss += loss.item() * input_ids.size(0)
+            total_samples += input_ids.size(0)
             
             predictions = torch.argmax(outputs, dim=1)
             all_predictions.extend(predictions.cpu().numpy())
-            all_labels.extend(batch['labels'].cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
     
     avg_loss = total_loss / total_samples
     accuracy = accuracy_score(all_labels, all_predictions)
@@ -266,7 +274,7 @@ def train_lora_model():
     
     # Use a smaller, more efficient model for CPU
     model_name = "distilbert-base-uncased"
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, force_download=True)
     
     # Load datasets
     print("Loading training dataset...")
@@ -294,7 +302,6 @@ def train_lora_model():
     print("Initializing LoRA model...")
     model = LoRATransformerWrapper(
         model_name=model_name,
-        use_lora=True,
         lora_r=4,  # Smaller rank for CPU
         lora_alpha=8,
         lora_dropout=0.1,
@@ -328,17 +335,22 @@ def train_lora_model():
         epoch_train_loss = 0
         train_samples = 0
         
-        for step, batch in enumerate(train_dataloader):
-            batch = {k: v.to(device) for k, v in batch.items()}
+        # In train_lora_model() function, replace the training loop:
+        for step, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch+1}")):
+            # FIX: The batch is a tuple, not a dictionary
+            input_ids, attention_mask, labels = batch
+            input_ids = input_ids.to(device)
+            attention_mask = attention_mask.to(device)
+            labels = labels.to(device)
             
             optimizer.zero_grad()
-            outputs = model(input_ids=batch['input_ids'], attention_mask=batch['attention_mask'])
-            loss = criterion(outputs, batch['labels'])
+            outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+            loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
             
-            epoch_train_loss += loss.item() * batch['input_ids'].size(0)
-            train_samples += batch['input_ids'].size(0)
+            epoch_train_loss += loss.item() * input_ids.size(0)
+            train_samples += input_ids.size(0)
             
             if (step + 1) % 50 == 0:
                 print(f'Epoch {epoch+1}, Step {step+1}, Loss: {loss.item():.4f}')
