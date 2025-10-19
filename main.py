@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from transformers import AutoModel, AutoTokenizer, AutoConfig
-from datasets import load_dataset
 import matplotlib.pyplot as plt
 import numpy as np
 import math
@@ -11,6 +10,8 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 import seaborn as sns
 from datetime import datetime
 import json
+import pandas as pd
+
 
 # Check if CUDA is available and set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -198,8 +199,6 @@ class LoRATransformerWrapper(nn.Module):
         
         logits = self.classifier(pooled_output)
         return logits
-
-import pandas as pd
 
 def prepare_dataset(tokenizer, split='train', num_samples=None):
     """Load and prepare dataset from JSONL files"""
