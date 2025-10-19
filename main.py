@@ -210,7 +210,7 @@ def prepare_dataset(tokenizer, split='train', num_samples=None):
 
     # Tokenize the text
     tokenized_inputs = tokenizer(
-        list(df['Title']),
+        list(df['title']),
         padding='max_length',
         truncation=True,
         max_length=128,  # Adjust if necessary
