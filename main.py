@@ -393,7 +393,7 @@ def train_lora_model():
     print(f"Weighted Avg F1: {report['weighted avg']['f1-score']:.4f}")
     
     # Plot results
-    plot_training_results(train_losses, val_accuracies, test_accuracy, class_names, report)
+    # plot_training_results(train_losses, val_accuracies, test_accuracy, class_names, report)
     
     return {
         'train_losses': train_losses,
