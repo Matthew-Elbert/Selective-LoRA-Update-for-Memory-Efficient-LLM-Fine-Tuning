@@ -199,31 +199,31 @@ class LoRATransformerWrapper(nn.Module):
         logits = self.classifier(pooled_output)
         return logits
 
+import pandas as pd
+
 def prepare_dataset(tokenizer, split='train', num_samples=None):
-    """Load and prepare AG News dataset with correct column names"""
-    dataset = load_dataset("ag_news", split=split)
-    
+    """Load and prepare dataset from JSONL files"""
+    splits = {'train': 'train.jsonl', 'test': 'test.jsonl'}
+    df = pd.read_json(f"hf://datasets/sh0416/ag_news/{splits[split]}", lines=True)
+
     if num_samples:
-        dataset = dataset.select(range(num_samples))
-    
-    def tokenize_function(examples):
-        return tokenizer(
-            examples['text'], 
-            padding='max_length', 
-            truncation=True, 
-            max_length=128,  # Reduced length for CPU efficiency
-            return_tensors="pt"
-        )
-    
-    tokenized_dataset = dataset.map(
-        tokenize_function, 
-        batched=True,
-        remove_columns=['text']
+        df = df.sample(n=num_samples, random_state=42)
+
+    # Tokenize the text
+    tokenized_inputs = tokenizer(
+        list(df['text']),
+        padding='max_length',
+        truncation=True,
+        max_length=128,  # Adjust if necessary
+        return_tensors="pt"
     )
-    tokenized_dataset = tokenized_dataset.rename_column('label', 'labels')
-    tokenized_dataset.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
-    
-    return tokenized_dataset
+
+    # Create a Pytorch dataset
+    input_ids = tokenized_inputs['input_ids']
+    attention_mask = tokenized_inputs['attention_mask']
+    labels = torch.tensor(df['label'].values)
+
+    return torch.utils.data.TensorDataset(input_ids, attention_mask, labels)
 
 def evaluate_model(model, dataloader, criterion):
     """Evaluate model performance"""
@@ -271,9 +271,10 @@ def train_lora_model():
     
     # Load datasets
     print("Loading training dataset...")
-    train_dataset = prepare_dataset(tokenizer, 'train', num_samples=train_samples)
+    train_dataset = prepare_dataset(tokenizer, split='train', num_samples=train_samples)
     print("Loading test dataset...")
-    test_dataset = prepare_dataset(tokenizer, 'test', num_samples=val_samples)
+    test_dataset = prepare_dataset(tokenizer, split='test', num_samples=val_samples)
+
     
     from torch.utils.data import DataLoader, random_split
     
