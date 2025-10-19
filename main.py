@@ -202,26 +202,25 @@ class LoRATransformerWrapper(nn.Module):
         return logits
 
 def prepare_dataset(tokenizer, split='train', num_samples=None):
-    """Load and prepare dataset from JSONL files"""
     splits = {'train': 'train.jsonl', 'test': 'test.jsonl'}
     df = pd.read_json(f"hf://datasets/sh0416/ag_news/{splits[split]}", lines=True)
 
     if num_samples:
         df = df.sample(n=num_samples, random_state=42)
 
-    # FIX: AG News dataset has 'text' column, not 'title'
-    texts = list(df['title'])  # Changed from 'title' to 'text'
-    
+    # Adjust labels from 1-4 to 0-3 if necessary
+    df['label'] = df['label'] - 1  # Assuming labels are in 1-4 range
+
     # Tokenize the text
     tokenized_inputs = tokenizer(
-        texts,  # Use the corrected variable
+        list(df['title']),
         padding='max_length',
         truncation=True,
-        max_length=128,
+        max_length=128,  # Adjust if necessary
         return_tensors="pt"
     )
 
-    # Create a PyTorch dataset
+    # Create a Pytorch dataset
     input_ids = tokenized_inputs['input_ids']
     attention_mask = tokenized_inputs['attention_mask']
     labels = torch.tensor(df['label'].values)
