@@ -1,5 +1,6 @@
 import torch
-from datasets import load_dataset
+import pandas as pd
+from datasets import Dataset, DatasetDict
 from transformers import (
     AutoTokenizer, 
     AutoModelForSequenceClassification,
@@ -16,8 +17,22 @@ from peft import (
 import evaluate
 import numpy as np
 
-# Load dataset
-dataset = load_dataset("ag_news")
+# Load dataset using pandas from JSONL files
+splits = {'train': 'train.jsonl', 'test': 'test.jsonl'}
+
+# Load train and test datasets
+train_df = pd.read_json(f"hf://datasets/sh0416/ag_news/{splits['train']}", lines=True)
+test_df = pd.read_json(f"hf://datasets/sh0416/ag_news/{splits['test']}", lines=True)
+
+# Convert pandas DataFrames to Hugging Face datasets
+train_dataset = Dataset.from_pandas(train_df)
+eval_dataset = Dataset.from_pandas(test_df)
+
+# Create DatasetDict for compatibility
+dataset = DatasetDict({
+    "train": train_dataset,
+    "test": eval_dataset
+})
 
 # Load tokenizer and model
 model_name = "microsoft/deberta-v3-small"
@@ -45,10 +60,10 @@ def tokenize_function(examples):
 tokenized_dataset = dataset.map(
     tokenize_function, 
     batched=True,
-    remove_columns=["text"]
+    remove_columns=[col for col in dataset["train"].column_names if col != "label"]
 )
 
-# Split dataset
+# Get tokenized splits
 train_dataset = tokenized_dataset["train"]
 eval_dataset = tokenized_dataset["test"]
 
@@ -110,9 +125,7 @@ training_args = TrainingArguments(
     load_best_model_at_end=True,
     metric_for_best_model="accuracy",
     greater_is_better=True,
-    # logging_dir="./logs",
     logging_steps=100,
-    # report_to="None",  # Disable wandb/tensorboard if not needed
     fp16=torch.cuda.is_available(),
     dataloader_pin_memory=False,
 )
@@ -123,7 +136,6 @@ trainer = Trainer(
     args=training_args,
     train_dataset=train_dataset,
     eval_dataset=eval_dataset,
-    # tokenizer=tokenizer,
     data_collator=data_collator,
     compute_metrics=compute_metrics,
 )
