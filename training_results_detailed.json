@@ -1,0 +1,12 @@
+{
+  "training_time_seconds": 0.0,
+  "test_inference_time_seconds": 0.0,
+  "peak_gpu_memory_during_training_gb": 0.0,
+  "peak_ram_usage_during_training_gb": 15.960186004638672,
+  "gpu_memory_increase_during_training_gb": 0,
+  "ram_increase_during_training_gb": 0.0,
+  "baseline_ram_gb": 15.960186004638672,
+  "baseline_gpu_gb": 0,
+  "total_parameters": 142580004,
+  "trainable_parameters": 682016
+}
