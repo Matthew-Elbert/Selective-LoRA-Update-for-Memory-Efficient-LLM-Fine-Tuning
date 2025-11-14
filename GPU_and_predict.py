@@ -18,24 +18,26 @@ peak_gpu_memory_during_training = 0
 peak_ram_usage_during_training = 0
 monitoring = True
 
+gpu_usage_log = []
+ram_usage_log = []
+
 # Function to monitor peak memory usage DURING TRAINING
 def monitor_memory_usage_during_training():
     global peak_gpu_memory_during_training, peak_ram_usage_during_training, monitoring
-    
+
     while monitoring:
         try:
-            # Monitor CURRENT GPU memory DURING training
             if torch.cuda.is_available():
-                current_gpu_memory = torch.cuda.memory_allocated() / (1024**3)  # Convert to GB
+                current_gpu_memory = torch.cuda.memory_allocated() / (1024**3)
+                gpu_usage_log.append(current_gpu_memory)
                 peak_gpu_memory_during_training = max(peak_gpu_memory_during_training, current_gpu_memory)
-            
-            # Monitor CURRENT RAM usage DURING training
-            current_ram_usage = psutil.virtual_memory().used / (1024**3)  # Convert to GB
+            current_ram_usage = psutil.virtual_memory().used / (1024**3)
+            ram_usage_log.append(current_ram_usage)
             peak_ram_usage_during_training = max(peak_ram_usage_during_training, current_ram_usage)
-            
-            time.sleep(0.1)  # Check every 100ms
+            time.sleep(0.1)
         except:
             break
+
 
 # Start memory monitoring in a separate thread
 memory_thread = Thread(target=monitor_memory_usage_during_training)
@@ -252,10 +254,17 @@ results = {
 }
 
 import json
-with open('training_results_detailed.json', 'w') as f:
+with open('./training_results_detailed.json', 'w') as f:
     json.dump(results, f, indent=2)
 
 print(f"\nResults saved to 'training_results_detailed.json'")
 print(f"Final Test Accuracy: {test_accuracy*100:.2f}%")
 print(f"Peak GPU Memory DURING TRAINING: {peak_gpu_memory_during_training:.2f} GB")
 print(f"Peak RAM Usage DURING TRAINING: {peak_ram_usage_during_training:.2f} GB")
+
+
+with open('./gpu_usage_log.json', 'w') as f:
+    json.dump(gpu_usage_log, f)
+
+with open('./ram_usage_log.json', 'w') as f:
+    json.dump(ram_usage_log, f)
