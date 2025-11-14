@@ -1,0 +1,261 @@
+# Import Libraries
+from transformers import DebertaV2Tokenizer, DebertaV2ForSequenceClassification, DataCollatorWithPadding
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+import torch
+from transformers import TrainingArguments, Trainer
+import numpy as np
+import pandas as pd
+from datasets import Dataset, DatasetDict
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+import psutil
+import time
+from threading import Thread
+import gc
+
+# Global variables to track peak memory usage DURING TRAINING
+peak_gpu_memory_during_training = 0
+peak_ram_usage_during_training = 0
+monitoring = True
+
+# Function to monitor peak memory usage DURING TRAINING
+def monitor_memory_usage_during_training():
+    global peak_gpu_memory_during_training, peak_ram_usage_during_training, monitoring
+    
+    while monitoring:
+        try:
+            # Monitor CURRENT GPU memory DURING training
+            if torch.cuda.is_available():
+                current_gpu_memory = torch.cuda.memory_allocated() / (1024**3)  # Convert to GB
+                peak_gpu_memory_during_training = max(peak_gpu_memory_during_training, current_gpu_memory)
+            
+            # Monitor CURRENT RAM usage DURING training
+            current_ram_usage = psutil.virtual_memory().used / (1024**3)  # Convert to GB
+            peak_ram_usage_during_training = max(peak_ram_usage_during_training, current_ram_usage)
+            
+            time.sleep(0.1)  # Check every 100ms
+        except:
+            break
+
+# Start memory monitoring in a separate thread
+memory_thread = Thread(target=monitor_memory_usage_during_training)
+memory_thread.daemon = True
+
+# Load and prepare data
+splits = {'train': 'train.jsonl', 'test': 'test.jsonl'}
+df_train = pd.read_json("hf://datasets/sh0416/ag_news/" + splits["train"], lines=True)
+df_test = pd.read_json("hf://datasets/sh0416/ag_news/" + splits["test"], lines=True)
+
+df_train['text'] = df_train['title'] + "\n\n" + df_train['description']
+df_test['text'] = df_test['title'] + "\n\n" + df_test['description']
+
+df_train['label'] = df_train['label'] - 1
+df_test['label'] = df_test['label'] - 1
+
+df_train, df_val = train_test_split(
+    df_train,
+    test_size=0.2,
+    random_state=67
+)
+
+# Convert pandas DataFrames to Hugging Face datasets
+train_dataset = Dataset.from_pandas(df_train.drop(['title', 'description'], axis=1))
+eval_dataset = Dataset.from_pandas(df_val.drop(['title', 'description'], axis=1))
+test_dataset = Dataset.from_pandas(df_test.drop(['title', 'description'], axis=1))
+
+# Create DatasetDict
+dataset = DatasetDict({
+    'train': train_dataset,
+    'validation': eval_dataset,
+    'test': test_dataset
+})
+
+# Tokenization
+tokenizer = DebertaV2Tokenizer.from_pretrained("microsoft/deberta-v3-small")
+
+# Tokenize the dataset
+def tokenize_function(examples):
+    return tokenizer(examples['text'], padding="max_length", truncation=True, max_length=512)
+
+tokenized_datasets = dataset.map(tokenize_function, batched=True)
+
+# Load the Pretrained Model
+model = DebertaV2ForSequenceClassification.from_pretrained("microsoft/deberta-v3-small", num_labels=4)
+
+lora_config = LoraConfig(
+    r=8,
+    lora_alpha=16,
+    lora_dropout=0.1,
+    target_modules=[
+        "query_proj", "key_proj", "value_proj",
+        "output.dense",
+        "intermediate.dense",
+        "pooler.dense", "classifier"
+    ]
+)
+
+model = prepare_model_for_kbit_training(model)
+model = get_peft_model(model, lora_config)
+model.print_trainable_parameters()
+
+# Fix dataset variable names
+train_dataset = tokenized_datasets["train"]
+eval_dataset = tokenized_datasets["validation"]
+test_dataset = tokenized_datasets["test"]
+
+# Data collator
+data_collator = DataCollatorWithPadding(
+    tokenizer=tokenizer,
+    padding=True,
+    return_tensors="pt"
+)
+
+# Compute metrics function for evaluation
+def compute_metrics(eval_pred):
+    predictions, labels = eval_pred
+    predictions = np.argmax(predictions, axis=1)
+    return {'accuracy': accuracy_score(labels, predictions)}
+
+# Training arguments
+training_args = TrainingArguments(
+    output_dir="./deberta-v3-small-lora-agnews",
+    learning_rate=1e-4,
+    per_device_train_batch_size=16,
+    per_device_eval_batch_size=16,
+    num_train_epochs=3,
+    weight_decay=0.01,
+    eval_strategy="epoch",
+    save_strategy="epoch",
+    load_best_model_at_end=True,
+    metric_for_best_model="loss",
+    greater_is_better=False,
+    # logging_dir="./logs",
+    logging_steps=100,
+    # report_to="None",  # Disable wandb/tensorboard if not needed
+    fp16=torch.cuda.is_available(),
+    dataloader_pin_memory=False,
+)
+
+
+# Create trainer
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=eval_dataset,
+    data_collator=data_collator,
+    compute_metrics=compute_metrics,
+)
+
+# Clear memory before training
+if torch.cuda.is_available():
+    torch.cuda.empty_cache()
+gc.collect()
+
+# Get baseline memory usage BEFORE training
+baseline_ram = psutil.virtual_memory().used / (1024**3)
+if torch.cuda.is_available():
+    baseline_gpu = torch.cuda.memory_allocated() / (1024**3)
+
+print(f"Baseline memory - RAM: {baseline_ram:.2f} GB, GPU: {baseline_gpu:.2f} GB" if torch.cuda.is_available() else f"Baseline memory - RAM: {baseline_ram:.2f} GB")
+
+# Start memory monitoring DURING TRAINING
+print("Starting memory monitoring DURING TRAINING...")
+memory_thread.start()
+
+# Start training and measure time
+print("Starting training...")
+start_time = time.time()
+trainer.train()
+training_time = time.time() - start_time
+
+# Stop memory monitoring
+monitoring = False
+memory_thread.join()
+
+print(f"Training completed in: {training_time:.2f} seconds")
+
+# Save the model
+trainer.save_model("./deberta-v3-small-lora-agnews-final")
+
+# Evaluate on validation set
+print("Evaluating on validation set...")
+val_results = trainer.evaluate(eval_dataset=eval_dataset)
+val_accuracy = val_results.get('eval_accuracy', 0)
+print(f"Validation accuracy: {val_accuracy:.4f}")
+
+# Test accuracy evaluation
+print("\n" + "="*60)
+print("TEST SET ACCURACY MEASUREMENT")
+print("="*60)
+
+# Clear memory before test evaluation
+if torch.cuda.is_available():
+    torch.cuda.empty_cache()
+gc.collect()
+
+# Make predictions on test set
+test_start_time = time.time()
+test_predictions = trainer.predict(test_dataset)
+test_time = time.time() - test_start_time
+
+# Calculate test accuracy
+test_preds = np.argmax(test_predictions.predictions, axis=1)
+test_labels = test_predictions.label_ids
+test_accuracy = accuracy_score(test_labels, test_preds)
+
+print(f"\nTEST RESULTS:")
+print(f"Test Accuracy: {test_accuracy:.4f} ({test_accuracy*100:.2f}%)")
+print(f"Test Inference Time: {test_time:.2f} seconds")
+
+print(f"\nPEAK MEMORY USAGE DURING TRAINING:")
+print(f"Peak GPU Memory DURING TRAINING: {peak_gpu_memory_during_training:.2f} GB")
+print(f"Peak RAM Usage DURING TRAINING: {peak_ram_usage_during_training:.2f} GB")
+
+print(f"\nMEMORY INCREASE DUE TO TRAINING:")
+if torch.cuda.is_available():
+    gpu_increase = peak_gpu_memory_during_training - baseline_gpu
+    print(f"GPU Memory Increase for Training: {gpu_increase:.2f} GB")
+ram_increase = peak_ram_usage_during_training - baseline_ram
+print(f"RAM Increase for Training: {ram_increase:.2f} GB")
+
+print(f"\nTRAINING PERFORMANCE:")
+print(f"Total Training Time: {training_time:.2f} seconds ({training_time/60:.2f} minutes)")
+print(f"Training Speed: {len(train_dataset)/training_time:.2f} samples/second")
+
+# Detailed test results
+print(f"\nDETAILED TEST ANALYSIS:")
+print(f"Total Test Samples: {len(test_dataset)}")
+print(f"Correct Predictions: {np.sum(test_preds == test_labels)}")
+print(f"Incorrect Predictions: {np.sum(test_preds != test_labels)}")
+
+# Classification report
+print(f"\nCLASSIFICATION REPORT:")
+print(classification_report(test_labels, test_preds, 
+                          target_names=['World', 'Sports', 'Business', 'Sci/Tech']))
+
+# Save comprehensive results
+results = {
+    'test_accuracy': float(test_accuracy),
+    'test_accuracy_percentage': float(test_accuracy * 100),
+    'validation_accuracy': float(val_accuracy),
+    'training_time_seconds': float(training_time),
+    'test_inference_time_seconds': float(test_time),
+    'peak_gpu_memory_during_training_gb': float(peak_gpu_memory_during_training),
+    'peak_ram_usage_during_training_gb': float(peak_ram_usage_during_training),
+    'gpu_memory_increase_during_training_gb': float(peak_gpu_memory_during_training - baseline_gpu) if torch.cuda.is_available() else 0,
+    'ram_increase_during_training_gb': float(peak_ram_usage_during_training - baseline_ram),
+    'baseline_ram_gb': float(baseline_ram),
+    'baseline_gpu_gb': float(baseline_gpu) if torch.cuda.is_available() else 0,
+    'total_parameters': sum(p.numel() for p in model.parameters()),
+    'trainable_parameters': sum(p.numel() for p in model.parameters() if p.requires_grad)
+}
+
+import json
+with open('training_results_detailed.json', 'w') as f:
+    json.dump(results, f, indent=2)
+
+print(f"\nResults saved to 'training_results_detailed.json'")
+print(f"Final Test Accuracy: {test_accuracy*100:.2f}%")
+print(f"Peak GPU Memory DURING TRAINING: {peak_gpu_memory_during_training:.2f} GB")
+print(f"Peak RAM Usage DURING TRAINING: {peak_ram_usage_during_training:.2f} GB")

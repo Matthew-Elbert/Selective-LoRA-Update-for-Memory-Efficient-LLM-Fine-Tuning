@@ -18,3 +18,4 @@ tokenizers==0.22.1
 torch==2.9.0
 transformers @ git+https://github.com/huggingface/transformers.git@307c5238546ba1675daabc46050c63ffde25f8e6
 tqdm==4.67.1
+GPUtil

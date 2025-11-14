@@ -11,6 +11,7 @@ from transformers import (
 import numpy as np
 import pandas as pd
 from datasets import Dataset, DatasetDict
+from sklearn.model_selection import train_test_split
 
 
 splits = {'train': 'train.jsonl', 'test': 'test.jsonl'}
@@ -23,13 +24,21 @@ df_test['text'] = df_test['title'] + "\n\n" + df_test['description']
 df_train['label']=df_train['label'] - 1
 df_test['label']=df_test['label'] - 1
 
+df_train, df_val = train_test_split(
+    df_train,
+    test_size=0.2,        # 20% for validation
+    random_state=67
+)
+
 # Convert pandas DataFrames to Hugging Face datasets
 train_dataset = Dataset.from_pandas(df_train.drop(['title', 'description'], axis=1))
+eval_dataset = Dataset.from_pandas(df_val.drop(['title', 'description'], axis=1))
 test_dataset = Dataset.from_pandas(df_test.drop(['title', 'description'], axis=1))
 
 # Create DatasetDict
 dataset = DatasetDict({
     'train': train_dataset,
+    'validation': eval_dataset,
     'test': test_dataset
 })
 
@@ -46,20 +55,14 @@ tokenized_datasets = dataset.map(tokenize_function, batched=True)
 model = DebertaV2ForSequenceClassification.from_pretrained("microsoft/deberta-v3-small", num_labels=4)
 
 lora_config = LoraConfig(
-    r=8,  # Rank
+    r=8,
     lora_alpha=16,
     lora_dropout=0.1,
-    target_modules = [
-        "encoder.layer.*.attention.self.query",
-        "encoder.layer.*.attention.self.key",
-        "encoder.layer.*.attention.self.value",
-        "encoder.layer.*.attention.output.dense",
-        "encoder.layer.*.intermediate.dense",
-        "encoder.layer.*.output.dense",
-        "encoder.layer.*.attention.output.LayerNorm",
-        "encoder.layer.*.output.LayerNorm",
-        "embeddings.word_embeddings",
-        "embeddings.position_embeddings"
+    target_modules=[
+        "query_proj", "key_proj", "value_proj",  # Self-attention
+        "output.dense",                          # Attention output & FFN output  
+        "intermediate.dense",                    # FFN intermediate
+        "pooler.dense", "classifier"             # Head layers
     ]
 )
 
@@ -69,13 +72,13 @@ model.print_trainable_parameters()  # To verify the trainable parameters
 
 # Split dataset
 train_dataset = tokenized_datasets["train"]
-eval_dataset = tokenized_datasets["test"]
+eval_dataset = tokenized_datasets["evaluation"]
 
 # Data collator
 data_collator = DataCollatorWithPadding(
     tokenizer=tokenizer,
-#   padding='max_length',
-#   max_length=512,
+    padding=True,
+    # max_length=512,
     return_tensors="pt"
 )
 
@@ -91,7 +94,7 @@ training_args = TrainingArguments(
     eval_strategy="epoch",
     save_strategy="epoch",
     load_best_model_at_end=True,
-    metric_for_best_model="eval_loss",
+    metric_for_best_model="loss",
     greater_is_better=False,
     # logging_dir="./logs",
     logging_steps=100,
@@ -122,25 +125,26 @@ print("Evaluating model...")
 results = trainer.evaluate()
 print(f"Final evaluation results: {results}")
 
+
 # Example inference
-def predict(text):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
-    model.eval()
+#def predict(text):
+#    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#    model.to(device)
+#    model.eval()
     
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
-    inputs = {k: v.to(device) for k, v in inputs.items()}
+#    inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+#    inputs = {k: v.to(device) for k, v in inputs.items()}
     
-    with torch.no_grad():
-        outputs = model(**inputs)
-        predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
-    
-    predicted_class = torch.argmax(predictions, dim=1).item()
-    confidence = predictions[0][predicted_class].item()
-    
-    return predicted_class, confidence
+#    with torch.no_grad():
+#        outputs = model(**inputs)
+#        predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
+#    
+#    predicted_class = torch.argmax(predictions, dim=1).item()
+#    confidence = predictions[0][predicted_class].item()
+#    
+#    return predicted_class, confidence
 
 # Test inference
-test_text = "Apple announced new iPhone with advanced AI features"
-pred_class, confidence = predict(test_text)
-print(f"Predicted class: {pred_class}, Confidence: {confidence:.4f}")
+#test_text = "Apple announced new iPhone with advanced AI features"
+#pred_class, confidence = predict(test_text)
+#print(f"Predicted class: {pred_class}, Confidence: {confidence:.4f}")
