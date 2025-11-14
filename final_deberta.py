@@ -74,8 +74,8 @@ eval_dataset = tokenized_datasets["test"]
 # Data collator
 data_collator = DataCollatorWithPadding(
     tokenizer=tokenizer,
-    padding=True,
-    max_length=512,
+#   padding='max_length',
+#   max_length=512,
     return_tensors="pt"
 )
 
@@ -91,8 +91,8 @@ training_args = TrainingArguments(
     eval_strategy="epoch",
     save_strategy="epoch",
     load_best_model_at_end=True,
-    metric_for_best_model="accuracy",
-    greater_is_better=True,
+    metric_for_best_model="eval_loss",
+    greater_is_better=False,
     # logging_dir="./logs",
     logging_steps=100,
     # report_to="None",  # Disable wandb/tensorboard if not needed
@@ -124,7 +124,12 @@ print(f"Final evaluation results: {results}")
 
 # Example inference
 def predict(text):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    model.eval()
+    
     inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+    inputs = {k: v.to(device) for k, v in inputs.items()}
     
     with torch.no_grad():
         outputs = model(**inputs)
