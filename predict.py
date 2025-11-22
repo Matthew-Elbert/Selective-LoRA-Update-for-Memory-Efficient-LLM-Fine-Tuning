@@ -7,6 +7,7 @@ from datasets import Dataset
 from sklearn.metrics import accuracy_score, classification_report
 import time
 import json
+from torch.utils.data import DataLoader
 
 # Load and prepare test data only
 splits = {'test': 'test.jsonl'}
@@ -21,9 +22,9 @@ test_dataset = Dataset.from_pandas(df_test.drop(['title', 'description'], axis=1
 # Tokenization
 tokenizer = DebertaV2Tokenizer.from_pretrained("microsoft/deberta-v3-small")
 
-# Tokenize the dataset
+# Tokenize with padding to maximum length
 def tokenize_function(examples):
-    return tokenizer(examples['text'], padding=True, truncation=True, max_length=512)
+    return tokenizer(examples['text'], padding='max_length', truncation=True, max_length=512)
 
 tokenized_test = test_dataset.map(tokenize_function, batched=True)
 
@@ -38,7 +39,7 @@ model.eval()  # Set to evaluation mode
 
 print(f"Model loaded on: {device}")
 
-# Function to get predictions
+# Function to get predictions with proper batching
 def get_predictions(dataset, batch_size=16):
     predictions = []
     labels = []
@@ -46,7 +47,7 @@ def get_predictions(dataset, batch_size=16):
     for i in range(0, len(dataset), batch_size):
         batch = dataset[i:i+batch_size]
         
-        # Prepare inputs
+        # Convert to lists and then to tensors
         input_ids = torch.tensor(batch['input_ids']).to(device)
         attention_mask = torch.tensor(batch['attention_mask']).to(device)
         
@@ -62,13 +63,46 @@ def get_predictions(dataset, batch_size=16):
     
     return np.array(predictions), np.array(labels)
 
+# Alternative approach using DataLoader (more robust)
+def get_predictions_dataloader(dataset, batch_size=16):
+    predictions = []
+    labels = []
+    
+    # Create a DataLoader for proper batching
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    
+    for batch in dataloader:
+        # Move tensors to device
+        input_ids = batch['input_ids'].to(device)
+        attention_mask = batch['attention_mask'].to(device)
+        batch_labels = batch['label']
+        
+        with torch.no_grad():
+            outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+            batch_predictions = torch.argmax(outputs.logits, dim=-1)
+            
+        predictions.extend(batch_predictions.cpu().numpy())
+        labels.extend(batch_labels.numpy())
+        
+    return np.array(predictions), np.array(labels)
+
 # Evaluate base model on test set
 print("\n" + "="*60)
 print("BASE MODEL ZERO-SHOT EVALUATION ON TEST SET")
 print("="*60)
 
 test_start_time = time.time()
-test_preds, test_labels = get_predictions(tokenized_test)
+
+# Try the first method, if it fails use the DataLoader method
+try:
+    test_preds, test_labels = get_predictions(tokenized_test)
+except Exception as e:
+    print(f"First method failed: {e}")
+    print("Trying DataLoader method...")
+    # Convert to torch format for DataLoader
+    tokenized_test.set_format(type='torch', columns=['input_ids', 'attention_mask', 'label'])
+    test_preds, test_labels = get_predictions_dataloader(tokenized_test)
+
 test_time = time.time() - test_start_time
 
 # Calculate test accuracy
