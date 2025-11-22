@@ -77,7 +77,7 @@ tokenizer = DebertaV2Tokenizer.from_pretrained("microsoft/deberta-v3-small")
 
 # Tokenize the dataset
 def tokenize_function(examples):
-    return tokenizer(examples['text'], padding="max_length", truncation=True, max_length=512)
+    return tokenizer(examples['text'], padding=True)
 
 tokenized_datasets = dataset.map(tokenize_function, batched=True)
 
