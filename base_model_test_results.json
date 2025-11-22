@@ -1,0 +1,6 @@
+{
+  "test_accuracy": 0.25,
+  "test_accuracy_percentage": 25.0,
+  "total_parameters": 141897988,
+  "trainable_parameters": 141897988
+}

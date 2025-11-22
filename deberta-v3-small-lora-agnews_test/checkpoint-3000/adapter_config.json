@@ -28,16 +28,13 @@
   "rank_pattern": {},
   "revision": null,
   "target_modules": [
-    "embeddings.position_embeddings",
-    "encoder.layer.*.output.dense",
-    "encoder.layer.*.intermediate.dense",
-    "embeddings.word_embeddings",
-    "encoder.layer.*.attention.self.key",
-    "encoder.layer.*.attention.self.query",
-    "encoder.layer.*.output.LayerNorm",
-    "encoder.layer.*.attention.output.dense",
-    "encoder.layer.*.attention.output.LayerNorm",
-    "encoder.layer.*.attention.self.value"
+    "classifier",
+    "value_proj",
+    "output.dense",
+    "intermediate.dense",
+    "query_proj",
+    "key_proj",
+    "pooler.dense"
   ],
   "target_parameters": null,
   "task_type": null,

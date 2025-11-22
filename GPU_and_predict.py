@@ -120,11 +120,11 @@ def compute_metrics(eval_pred):
 
 # Training arguments
 training_args = TrainingArguments(
-    output_dir="./deberta-v3-small-lora-agnews",
+    output_dir="./deberta-v3-small-lora-agnews_test",
     learning_rate=1e-4,
     per_device_train_batch_size=16,
     per_device_eval_batch_size=16,
-    num_train_epochs=3,
+    num_train_epochs=1,
     weight_decay=0.01,
     eval_strategy="epoch",
     save_strategy="epoch",
@@ -178,8 +178,8 @@ memory_thread.join()
 print(f"Training completed in: {training_time:.2f} seconds")
 
 # Save the model
-trainer.save_model("./deberta-v3-small-lora-agnews-final")
-
+trainer.save_model("./deberta-v3-small-lora-agnews-test")
+tokenizer.save_model("./deberta-v3-small-lora-agnews-test")
 # Evaluate on validation set
 print("Evaluating on validation set...")
 val_results = trainer.evaluate(eval_dataset=eval_dataset)
@@ -254,7 +254,7 @@ results = {
 }
 
 import json
-with open('./training_results_detailed.json', 'w') as f:
+with open('./training_results_detailed_test.json', 'w') as f:
     json.dump(results, f, indent=2)
 
 print(f"\nResults saved to 'training_results_detailed.json'")
@@ -263,8 +263,8 @@ print(f"Peak GPU Memory DURING TRAINING: {peak_gpu_memory_during_training:.2f} G
 print(f"Peak RAM Usage DURING TRAINING: {peak_ram_usage_during_training:.2f} GB")
 
 
-with open('./gpu_usage_log.json', 'w') as f:
+with open('./gpu_usage_log_test.json', 'w') as f:
     json.dump(gpu_usage_log, f)
 
-with open('./ram_usage_log.json', 'w') as f:
+with open('./ram_usage_log_test.json', 'w') as f:
     json.dump(ram_usage_log, f)

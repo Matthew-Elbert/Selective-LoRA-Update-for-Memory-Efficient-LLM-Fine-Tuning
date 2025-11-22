@@ -1,0 +1,10 @@
+{
+  "base_model_test_accuracy": 0.25,
+  "base_model_test_accuracy_percentage": 25.0,
+  "test_inference_time_seconds": 59.468098878860474,
+  "total_test_samples": 7600,
+  "correct_predictions": 1900,
+  "incorrect_predictions": 5700,
+  "model_name": "microsoft/deberta-v3-small",
+  "evaluation_type": "zero_shot_no_finetuning"
+}
