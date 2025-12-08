@@ -77,7 +77,7 @@ tokenizer = DebertaV2Tokenizer.from_pretrained("microsoft/deberta-v3-small")
 
 # Tokenize the dataset
 def tokenize_function(examples):
-    return tokenizer(examples['text'], padding=True)
+    return tokenizer(examples['text'])
 
 tokenized_datasets = dataset.map(tokenize_function, batched=True)
 
@@ -124,7 +124,7 @@ training_args = TrainingArguments(
     learning_rate=1e-4,
     per_device_train_batch_size=16,
     per_device_eval_batch_size=16,
-    num_train_epochs=1,
+    num_train_epochs=3,
     weight_decay=0.01,
     eval_strategy="epoch",
     save_strategy="epoch",
