@@ -5,12 +5,15 @@ import torch
 from transformers import TrainingArguments, Trainer
 import numpy as np
 import pandas as pd
+import os
 from datasets import Dataset, DatasetDict
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
 import psutil
 import time
 from threading import Thread
+import datetime
+import json
 import gc
 
 # Global variables to track peak memory usage DURING TRAINING
@@ -20,6 +23,10 @@ monitoring = True
 
 gpu_usage_log = []
 ram_usage_log = []
+
+timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+results_dir = f'./results_{timestamp}'
+os.makedirs(results_dir, exist_ok=True)
 
 # Function to monitor peak memory usage DURING TRAINING
 def monitor_memory_usage_during_training():
@@ -120,7 +127,7 @@ def compute_metrics(eval_pred):
 
 # Training arguments
 training_args = TrainingArguments(
-    output_dir="./deberta-v3-small-lora-agnews_test",
+    output_dir=f"./{results_dir}/deberta-v3-small-lora",
     learning_rate=1e-4,
     per_device_train_batch_size=16,
     per_device_eval_batch_size=16,
@@ -177,9 +184,14 @@ memory_thread.join()
 
 print(f"Training completed in: {training_time:.2f} seconds")
 
+# Store log
+log = trainer.state.log_history
+with open(f'{results_dir}/log.json', 'w') as f:
+    json.dump(log, f, indent=2)
+
 # Save the model
-trainer.save_model("./deberta-v3-small-lora-agnews-test")
-tokenizer.save_model("./deberta-v3-small-lora-agnews-test")
+trainer.save_model(f"./{results_dir}/deberta-v3-small-lora")
+tokenizer.save_model(f"./{results_dir}/deberta-v3-small-lora")
 # Evaluate on validation set
 print("Evaluating on validation set...")
 val_results = trainer.evaluate(eval_dataset=eval_dataset)
@@ -253,7 +265,6 @@ results = {
     'trainable_parameters': sum(p.numel() for p in model.parameters() if p.requires_grad)
 }
 
-import json
 with open('./training_results_detailed_test.json', 'w') as f:
     json.dump(results, f, indent=2)
 
@@ -263,8 +274,10 @@ print(f"Peak GPU Memory DURING TRAINING: {peak_gpu_memory_during_training:.2f} G
 print(f"Peak RAM Usage DURING TRAINING: {peak_ram_usage_during_training:.2f} GB")
 
 
-with open('./gpu_usage_log_test.json', 'w') as f:
+
+
+with open(f'./results_{timestamp}/gpu_usage_log.json', 'w') as f:
     json.dump(gpu_usage_log, f)
 
-with open('./ram_usage_log_test.json', 'w') as f:
+with open(f'./results_{timestamp}/ram_usage_log.json', 'w') as f:
     json.dump(ram_usage_log, f)
