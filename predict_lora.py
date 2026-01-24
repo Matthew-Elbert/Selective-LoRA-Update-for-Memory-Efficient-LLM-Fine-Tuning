@@ -20,7 +20,7 @@ test_dataset = Dataset.from_pandas(df_test.drop(['title', 'description'], axis=1
 # -----------------------------
 # 2. Load Tokenizer & Base Model
 # -----------------------------
-tokenizer = DebertaV2Tokenizer.from_pretrained("./deberta-v3-small-lora-agnews/checkpoint-9000")
+tokenizer = DebertaV2Tokenizer.from_pretrained("microsoft/deberta-v3-small")
 base_model = DebertaV2ForSequenceClassification.from_pretrained(
     "microsoft/deberta-v3-small",
     num_labels=4
@@ -30,7 +30,7 @@ base_model = DebertaV2ForSequenceClassification.from_pretrained(
 # 3. Load LoRA Adapter Weights
 # -----------------------------
 # Path should match where you saved during training (e.g. "./deberta-v3-small-lora-agnews-final")
-model = PeftModel.from_pretrained(base_model, "./deberta-v3-small-lora-agnews/checkpoint-9000")
+model = PeftModel.from_pretrained(base_model, "./results_20260124_163949/deberta-v3-small-lora/checkpoint-9000")
 
 # Put model in eval mode
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -41,14 +41,14 @@ model.eval()
 # 4. Tokenize Dataset
 # -----------------------------
 def tokenize_function(examples):
-    return tokenizer(examples['text'], padding="max_length", truncation=True)
+    return tokenizer(examples['text'])
 
 tokenized_test = test_dataset.map(tokenize_function, batched=True)
 
 # -----------------------------
 # 5. Data Collator
 # -----------------------------
-data_collator = DataCollatorWithPadding(tokenizer=tokenizer, return_tensors="pt")
+data_collator = DataCollatorWithPadding(tokenizer=tokenizer, padding=True, return_tensors="pt")
 
 # -----------------------------
 # 6. Initialize Trainer

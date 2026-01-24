@@ -191,7 +191,6 @@ with open(f'{results_dir}/log.json', 'w') as f:
 
 # Save the model
 trainer.save_model(f"./{results_dir}/deberta-v3-small-lora")
-tokenizer.save_model(f"./{results_dir}/deberta-v3-small-lora")
 # Evaluate on validation set
 print("Evaluating on validation set...")
 val_results = trainer.evaluate(eval_dataset=eval_dataset)
