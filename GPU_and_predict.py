@@ -2,6 +2,7 @@
 from transformers import DebertaV2Tokenizer, DebertaV2ForSequenceClassification, DataCollatorWithPadding
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 import torch
+import random
 from transformers import TrainingArguments, Trainer
 import numpy as np
 import pandas as pd
@@ -15,6 +16,12 @@ from threading import Thread
 import datetime
 import json
 import gc
+
+torch.manual_seed(67)
+np.random.seed(67)
+random.seed(67)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(67)
 
 # Global variables to track peak memory usage DURING TRAINING
 peak_gpu_memory_during_training = 0
@@ -84,7 +91,7 @@ tokenizer = DebertaV2Tokenizer.from_pretrained("microsoft/deberta-v3-small")
 
 # Tokenize the dataset
 def tokenize_function(examples):
-    return tokenizer(examples['text'])
+    return tokenizer(examples['text'], truncation=True, padding='max_length', max_length=256)
 
 tokenized_datasets = dataset.map(tokenize_function, batched=True)
 
@@ -115,7 +122,7 @@ test_dataset = tokenized_datasets["test"]
 # Data collator
 data_collator = DataCollatorWithPadding(
     tokenizer=tokenizer,
-    padding=True,
+    padding=False,
     return_tensors="pt"
 )
 

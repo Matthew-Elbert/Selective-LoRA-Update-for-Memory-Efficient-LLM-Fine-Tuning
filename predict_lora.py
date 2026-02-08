@@ -1,10 +1,16 @@
 import torch
 import numpy as np
+import random
 import pandas as pd
 from datasets import Dataset
 from transformers import DebertaV2Tokenizer, DebertaV2ForSequenceClassification, Trainer, DataCollatorWithPadding
 from peft import PeftModel
 from sklearn.metrics import accuracy_score, classification_report
+torch.manual_seed(67)
+np.random.seed(67)
+random.seed(67)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(67)
 
 # -----------------------------
 # 1. Load Test Data
@@ -41,7 +47,7 @@ model.eval()
 # 4. Tokenize Dataset
 # -----------------------------
 def tokenize_function(examples):
-    return tokenizer(examples['text'])
+    return tokenizer(examples['text'], truncation=True, padding='max_length', max_length=256)
 
 tokenized_test = test_dataset.map(tokenize_function, batched=True)
 
