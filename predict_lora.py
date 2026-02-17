@@ -36,7 +36,7 @@ base_model = DebertaV2ForSequenceClassification.from_pretrained(
 # 3. Load LoRA Adapter Weights
 # -----------------------------
 # Path should match where you saved during training (e.g. "./deberta-v3-small-lora-agnews-final")
-model = PeftModel.from_pretrained(base_model, "./results_20260124_163949/deberta-v3-small-lora/checkpoint-9000")
+model = PeftModel.from_pretrained(base_model, "./results_20260208_154451/deberta-v3-small-lora/checkpoint-9000")
 
 # Put model in eval mode
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
