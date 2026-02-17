@@ -17,11 +17,11 @@ import datetime
 import json
 import gc
 
-# torch.manual_seed(67)
-# np.random.seed(67)
-# random.seed(67)
-# if torch.cuda.is_available():
-#    torch.cuda.manual_seed_all(67)
+torch.manual_seed(67)
+np.random.seed(67)
+random.seed(67)
+if torch.cuda.is_available():
+   torch.cuda.manual_seed_all(67)
 
 # Global variables to track peak memory usage DURING TRAINING
 peak_gpu_memory_during_training = 0
@@ -32,7 +32,7 @@ gpu_usage_log = []
 ram_usage_log = []
 
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-results_dir = f'./results_{timestamp}'
+results_dir = f'./results_50%_{timestamp}'
 os.makedirs(results_dir, exist_ok=True)
 
 # Function to monitor peak memory usage DURING TRAINING
@@ -98,16 +98,21 @@ tokenized_datasets = dataset.map(tokenize_function, batched=True)
 # Load the Pretrained Model
 model = DebertaV2ForSequenceClassification.from_pretrained("microsoft/deberta-v3-small", num_labels=4)
 
+# Load JSON file
+with open('Gradient_Update/modules_by_grad_update.json', 'r') as f:
+    modules_dict = json.load(f)
+
+# Convert dict keys to a list
+modules = list(modules_dict.keys())
+
+# Keep only the first 70% of modules
+modules = modules[:round(len(modules) * 0.5)]
+
 lora_config = LoraConfig(
     r=8,
     lora_alpha=16,
     lora_dropout=0.1,
-    target_modules=[
-        "query_proj", "key_proj", "value_proj",
-        "output.dense",
-        "intermediate.dense",
-        "pooler.dense", "classifier"
-    ]
+    target_modules=modules
 )
 
 model = prepare_model_for_kbit_training(model)
@@ -271,7 +276,7 @@ results = {
     'trainable_parameters': sum(p.numel() for p in model.parameters() if p.requires_grad)
 }
 
-with open(f'./{result_dir}/training_results_detailed_test.json', 'w') as f:
+with open(f'./{results_dir}/training_results_detailed_test.json', 'w') as f:
     json.dump(results, f, indent=2)
 
 print(f"\nResults saved to 'training_results_detailed.json'")

@@ -39,16 +39,16 @@ outputs = model(**inputs, labels=labels)
 loss = outputs.loss
 loss.backward()
 
-# Collect gradient magnitudes
+# Collect gradient magnitudes (only parameters with shape not 1D)
 grad_magnitudes = {}
 for name, param in model.named_parameters():
-    if param.grad is not None:
+    if param.grad is not None and len(param.shape) > 1:
         grad_magnitudes[name] = param.grad.abs().mean().item()
 
 # Sort by sensitivity
 sorted_layers = sorted(grad_magnitudes.items(), key=lambda x: x[1], reverse=True)
 
-d={'modules_by_grad_update':sorted_layers}
+d = {key:val for key,val in sorted_layers}
 
-with open('modules_by_grad_update.json','w') as f:
-    json.dump(d,f)
+with open('modules_by_grad_update.json', 'w', encoding='utf-8') as f:
+    json.dump(d, f, indent=2)
