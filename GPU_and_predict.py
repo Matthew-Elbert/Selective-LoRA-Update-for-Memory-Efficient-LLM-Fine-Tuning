@@ -17,11 +17,11 @@ import datetime
 import json
 import gc
 
-# torch.manual_seed(67)
-# np.random.seed(67)
-# random.seed(67)
-# if torch.cuda.is_available():
-#    torch.cuda.manual_seed_all(67)
+torch.manual_seed(67)
+np.random.seed(67)
+random.seed(67)
+if torch.cuda.is_available():
+   torch.cuda.manual_seed_all(67)
 
 # Global variables to track peak memory usage DURING TRAINING
 peak_gpu_memory_during_training = 0
