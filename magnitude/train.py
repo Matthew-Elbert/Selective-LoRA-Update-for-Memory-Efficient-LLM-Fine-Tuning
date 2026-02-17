@@ -21,7 +21,7 @@ torch.manual_seed(67)
 np.random.seed(67)
 random.seed(67)
 if torch.cuda.is_available():
-   torch.cuda.manual_seed_all(67)
+    torch.cuda.manual_seed_all(67)
 
 # Global variables to track peak memory usage DURING TRAINING
 peak_gpu_memory_during_training = 0
@@ -193,7 +193,7 @@ print(f"Training completed in: {training_time:.2f} seconds")
 
 # Store log
 log = trainer.state.log_history
-with open(f'./{results_dir}/log.json', 'w') as f:
+with open(f'{results_dir}/log.json', 'w') as f:
     json.dump(log, f, indent=2)
 
 # Save the model
@@ -271,7 +271,7 @@ results = {
     'trainable_parameters': sum(p.numel() for p in model.parameters() if p.requires_grad)
 }
 
-with open(f'./{result_dir}/training_results_detailed_test.json', 'w') as f:
+with open('./training_results_detailed_test.json', 'w') as f:
     json.dump(results, f, indent=2)
 
 print(f"\nResults saved to 'training_results_detailed.json'")
@@ -282,8 +282,8 @@ print(f"Peak RAM Usage DURING TRAINING: {peak_ram_usage_during_training:.2f} GB"
 
 
 
-with open(f'./{results_dir}/gpu_usage_log.json', 'w') as f:
+with open(f'./results_{timestamp}/gpu_usage_log.json', 'w') as f:
     json.dump(gpu_usage_log, f)
 
-with open(f'./{results_dir}/ram_usage_log.json', 'w') as f:
+with open(f'./results_{timestamp}/ram_usage_log.json', 'w') as f:
     json.dump(ram_usage_log, f)
