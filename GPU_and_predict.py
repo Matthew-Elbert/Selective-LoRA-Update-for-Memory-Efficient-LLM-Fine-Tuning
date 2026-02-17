@@ -271,10 +271,10 @@ results = {
     'trainable_parameters': sum(p.numel() for p in model.parameters() if p.requires_grad)
 }
 
-with open(f'./{result_dir}/training_results_detailed_test.json', 'w') as f:
+with open(f'./{results_dir}/training_results_detailed_test.json', 'w') as f:
     json.dump(results, f, indent=2)
 
-print(f"\nResults saved to 'training_results_detailed.json'")
+print(f"\nResults saved to 'training_results_detailed_test.json'")
 print(f"Final Test Accuracy: {test_accuracy*100:.2f}%")
 print(f"Peak GPU Memory DURING TRAINING: {peak_gpu_memory_during_training:.2f} GB")
 print(f"Peak RAM Usage DURING TRAINING: {peak_ram_usage_during_training:.2f} GB")
