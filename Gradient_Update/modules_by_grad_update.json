@@ -1,42 +1,122 @@
 {
-  "classifier.weight": 0.036773681640625,
-  "pooler.dense.weight": 0.002105712890625,
-  "deberta.encoder.layer.4.attention.output.dense.weight": 0.0009565353393554688,
-  "deberta.encoder.layer.3.attention.output.dense.weight": 0.0009355545043945312,
-  "deberta.encoder.layer.4.attention.self.value_proj.weight": 0.0008678436279296875,
-  "deberta.encoder.layer.3.attention.self.value_proj.weight": 0.0008482933044433594,
-  "deberta.encoder.layer.5.attention.self.value_proj.weight": 0.0008168220520019531,
-  "deberta.encoder.layer.5.attention.output.dense.weight": 0.0007843971252441406,
-  "deberta.encoder.layer.2.attention.output.dense.weight": 0.0007233619689941406,
-  "deberta.encoder.layer.2.attention.self.value_proj.weight": 0.0007219314575195312,
-  "deberta.encoder.layer.1.attention.output.dense.weight": 0.0007138252258300781,
-  "deberta.encoder.layer.1.attention.self.value_proj.weight": 0.000629425048828125,
-  "deberta.encoder.layer.0.attention.output.dense.weight": 0.0006070137023925781,
-  "deberta.encoder.layer.0.attention.self.value_proj.weight": 0.0005164146423339844,
-  "deberta.encoder.layer.4.output.dense.weight": 0.00046634674072265625,
-  "deberta.encoder.layer.2.output.dense.weight": 0.00042438507080078125,
-  "deberta.encoder.layer.3.output.dense.weight": 0.00042247772216796875,
-  "deberta.encoder.layer.4.intermediate.dense.weight": 0.00041294097900390625,
-  "deberta.encoder.layer.1.output.dense.weight": 0.00039386749267578125,
-  "deberta.encoder.layer.0.output.dense.weight": 0.00038504600524902344,
-  "deberta.encoder.layer.2.intermediate.dense.weight": 0.0003795623779296875,
-  "deberta.encoder.layer.3.intermediate.dense.weight": 0.00036263465881347656,
-  "deberta.encoder.layer.1.intermediate.dense.weight": 0.0003592967987060547,
-  "deberta.encoder.layer.3.attention.self.key_proj.weight": 0.00034737586975097656,
-  "deberta.encoder.layer.0.intermediate.dense.weight": 0.0003437995910644531,
-  "deberta.encoder.layer.3.attention.self.query_proj.weight": 0.00032806396484375,
-  "deberta.encoder.layer.5.intermediate.dense.weight": 0.0002918243408203125,
-  "deberta.encoder.layer.0.attention.self.key_proj.weight": 0.00028777122497558594,
-  "deberta.encoder.layer.5.output.dense.weight": 0.0002818107604980469,
-  "deberta.encoder.layer.2.attention.self.key_proj.weight": 0.00027823448181152344,
-  "deberta.encoder.layer.1.attention.self.key_proj.weight": 0.00027561187744140625,
-  "deberta.encoder.layer.5.attention.self.key_proj.weight": 0.0002720355987548828,
-  "deberta.encoder.layer.4.attention.self.key_proj.weight": 0.00026345252990722656,
-  "deberta.encoder.layer.1.attention.self.query_proj.weight": 0.00026154518127441406,
-  "deberta.encoder.layer.2.attention.self.query_proj.weight": 0.00026106834411621094,
-  "deberta.encoder.layer.4.attention.self.query_proj.weight": 0.0002589225769042969,
-  "deberta.encoder.layer.5.attention.self.query_proj.weight": 0.0002532005310058594,
-  "deberta.encoder.layer.0.attention.self.query_proj.weight": 0.00024271011352539062,
-  "deberta.encoder.rel_embeddings.weight": 0.0001552104949951172,
-  "deberta.embeddings.word_embeddings.weight": 1.6093254089355469e-06
+  "classifier": [
+    0.028419246897101402
+  ],
+  "pooler.dense": [
+    0.0004736142000183463
+  ],
+  "deberta.encoder.layer.5.output.dense": [
+    3.6680808989331126e-05
+  ],
+  "deberta.encoder.layer.5.attention.self.value_proj": [
+    2.4900973585317843e-05
+  ],
+  "deberta.encoder.layer.5.attention.output.dense": [
+    2.302661960129626e-05
+  ],
+  "deberta.encoder.layer.4.attention.output.dense": [
+    1.620767216081731e-05
+  ],
+  "deberta.encoder.layer.4.attention.self.value_proj": [
+    1.541234814794734e-05
+  ],
+  "deberta.encoder.layer.4.output.dense": [
+    1.202537623612443e-05
+  ],
+  "deberta.encoder.layer.5.intermediate.dense": [
+    1.0477041541889776e-05
+  ],
+  "deberta.encoder.layer.3.attention.self.value_proj": [
+    8.894319762475789e-06
+  ],
+  "deberta.encoder.layer.3.attention.output.dense": [
+    8.588312084611971e-06
+  ],
+  "deberta.encoder.layer.4.intermediate.dense": [
+    8.324853297381196e-06
+  ],
+  "deberta.encoder.layer.3.output.dense": [
+    7.110168553481344e-06
+  ],
+  "deberta.encoder.layer.5.attention.self.key_proj": [
+    5.940102255408419e-06
+  ],
+  "deberta.encoder.layer.2.attention.output.dense": [
+    5.590868568106089e-06
+  ],
+  "deberta.encoder.layer.2.attention.self.value_proj": [
+    5.417880856839474e-06
+  ],
+  "deberta.encoder.layer.2.output.dense": [
+    5.084345957584446e-06
+  ],
+  "deberta.encoder.layer.3.intermediate.dense": [
+    4.791649189428426e-06
+  ],
+  "deberta.encoder.layer.1.attention.output.dense": [
+    4.514312877290649e-06
+  ],
+  "deberta.encoder.layer.0.attention.output.dense": [
+    4.426377927302383e-06
+  ],
+  "deberta.encoder.layer.1.attention.self.value_proj": [
+    4.0493946471542586e-06
+  ],
+  "deberta.encoder.layer.2.intermediate.dense": [
+    3.917765297956066e-06
+  ],
+  "deberta.encoder.layer.1.output.dense": [
+    3.7715221878897864e-06
+  ],
+  "deberta.encoder.layer.4.attention.self.key_proj": [
+    3.6469270980887813e-06
+  ],
+  "deberta.encoder.layer.0.attention.self.value_proj": [
+    3.538842975103762e-06
+  ],
+  "deberta.encoder.layer.1.intermediate.dense": [
+    3.021654492840753e-06
+  ],
+  "deberta.encoder.layer.0.output.dense": [
+    2.9210821139713516e-06
+  ],
+  "deberta.encoder.layer.4.attention.self.query_proj": [
+    2.6175334824074525e-06
+  ],
+  "deberta.encoder.layer.0.intermediate.dense": [
+    2.5930551146302605e-06
+  ],
+  "deberta.encoder.layer.3.attention.self.key_proj": [
+    2.5137026113952743e-06
+  ],
+  "deberta.encoder.layer.3.attention.self.query_proj": [
+    2.483119942553458e-06
+  ],
+  "deberta.encoder.rel_embeddings": [
+    2.4175371891033137e-06
+  ],
+  "deberta.encoder.layer.5.attention.self.query_proj": [
+    2.220827582277707e-06
+  ],
+  "deberta.encoder.layer.2.attention.self.query_proj": [
+    1.8796017684508115e-06
+  ],
+  "deberta.encoder.layer.0.attention.self.key_proj": [
+    1.8118839761882555e-06
+  ],
+  "deberta.encoder.layer.2.attention.self.key_proj": [
+    1.7965313645618153e-06
+  ],
+  "deberta.encoder.layer.1.attention.self.key_proj": [
+    1.703712541711866e-06
+  ],
+  "deberta.encoder.layer.0.attention.self.query_proj": [
+    1.661048941059562e-06
+  ],
+  "deberta.encoder.layer.1.attention.self.query_proj": [
+    1.65490109793609e-06
+  ],
+  "deberta.embeddings.word_embeddings": [
+    1.4098744394175355e-08
+  ]
 }

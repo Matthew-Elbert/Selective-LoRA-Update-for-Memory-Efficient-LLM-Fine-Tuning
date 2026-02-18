@@ -99,7 +99,7 @@ tokenized_datasets = dataset.map(tokenize_function, batched=True)
 model = DebertaV2ForSequenceClassification.from_pretrained("microsoft/deberta-v3-small", num_labels=4)
 
 # Load JSON file
-with open('Gradient_Update/modules_by_grad_update.json', 'r') as f:
+with open('modules_by_grad_update.json', 'r') as f:
     modules_dict = json.load(f)
 
 # Convert dict keys to a list
@@ -112,7 +112,7 @@ lora_config = LoraConfig(
     r=8,
     lora_alpha=16,
     lora_dropout=0.1,
-    target_modules=modules
+    target_modules=['classifier.weight', 'pooler.dense.weight', 'deberta.encoder.layer.4.attention.output.dense.weight', 'deberta.encoder.layer.3.attention.output.dense.weight', 'deberta.encoder.layer.4.attention.self.value_proj.weight', 'deberta.encoder.layer.3.attention.self.value_proj.weight', 'deberta.encoder.layer.5.attention.self.value_proj.weight', 'deberta.encoder.layer.5.attention.output.dense.weight', 'deberta.encoder.layer.2.attention.output.dense.weight', 'deberta.encoder.layer.2.attention.self.value_proj.weight', 'deberta.encoder.layer.1.attention.output.dense.weight', 'deberta.encoder.layer.1.attention.self.value_proj.weight', 'deberta.encoder.layer.0.attention.output.dense.weight', 'deberta.encoder.layer.0.attention.self.value_proj.weight', 'deberta.encoder.layer.4.output.dense.weight', 'deberta.encoder.layer.2.output.dense.weight', 'deberta.encoder.layer.3.output.dense.weight', 'deberta.encoder.layer.4.intermediate.dense.weight', 'deberta.encoder.layer.1.output.dense.weight', 'deberta.encoder.layer.0.output.dense.weight'] 
 )
 
 model = prepare_model_for_kbit_training(model)
