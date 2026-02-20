@@ -47,9 +47,7 @@ grad_magnitudes_grouped = defaultdict(list)
 
 for name, param in model.named_parameters():
     if param.grad is not None and len(param.shape) > 1:
-        # Strip off ".weight" or ".bias" to get the module name
-        module_name = re.sub(r"\.(weight|bias)$", "", name)
-        grad_magnitudes_grouped[module_name].append(param.grad.abs().mean().item())
+        grad_magnitudes_grouped[name].append(param.grad.abs().mean().item())
 
 # Sort by sensitivity
 sorted_layers = sorted(grad_magnitudes_grouped.items(), key=lambda x: x[1], reverse=True)
