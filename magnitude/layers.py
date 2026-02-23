@@ -65,5 +65,5 @@ results = {
 }
 
 # Save to JSON file
-with open("layer_ranking.json", "w") as f:
+with open("./layer_ranking.json", "w") as f:
     json.dump(results, f, indent=4)
