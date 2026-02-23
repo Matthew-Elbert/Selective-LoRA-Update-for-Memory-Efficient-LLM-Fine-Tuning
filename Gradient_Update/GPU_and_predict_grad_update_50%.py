@@ -99,7 +99,7 @@ tokenized_datasets = dataset.map(tokenize_function, batched=True)
 model = DebertaV2ForSequenceClassification.from_pretrained("microsoft/deberta-v3-small", num_labels=4)
 
 # Load JSON file
-with open('Gradient_Update/modules_by_grad_update.json', 'r') as f:
+with open('modules_by_grad_update.json', 'r') as f:
     modules_dict = json.load(f)
 
 # Convert dict keys to a list
@@ -108,16 +108,30 @@ modules = list(modules_dict.keys())
 # Keep only the first 70% of modules
 modules = modules[:round(len(modules) * 0.5)]
 
+
+
 lora_config = LoraConfig(
     r=8,
-    lora_alpha=16,
-    lora_dropout=0.1,
-    target_modules=modules
+    lora_alpha=32,
+    target_modules=[
+        "encoder.layer.5.attention.self.query_proj",
+        "encoder.layer.5.attention.self.key_proj", 
+        "encoder.layer.5.attention.self.value_proj",
+        "encoder.layer.5.attention.output.dense",
+        "encoder.layer.5.intermediate.dense",
+        "encoder.layer.5.output.dense"
+    ],
+    lora_dropout=0,
+    bias="none",
 )
 
 model = prepare_model_for_kbit_training(model)
 model = get_peft_model(model, lora_config)
 model.print_trainable_parameters()
+
+for name, param in model.named_parameters():
+    if "lora" in name:
+        print(name)
 
 # Fix dataset variable names
 train_dataset = tokenized_datasets["train"]

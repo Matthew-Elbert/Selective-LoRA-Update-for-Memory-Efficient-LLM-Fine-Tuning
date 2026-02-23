@@ -2,6 +2,9 @@ import pandas as pd
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import json
+import re
+from collections import defaultdict
+
 
 # Load AG News dataset
 splits = {'train': 'train.jsonl', 'test': 'test.jsonl'}
@@ -39,16 +42,16 @@ outputs = model(**inputs, labels=labels)
 loss = outputs.loss
 loss.backward()
 
-# Collect gradient magnitudes (only parameters with shape not 1D)
-grad_magnitudes = {}
+# Collect gradient magnitudes grouped by module (ignoring .weight/.bias split)
+grad_magnitudes_grouped = defaultdict(list)
+
 for name, param in model.named_parameters():
     if param.grad is not None and len(param.shape) > 1:
-        grad_magnitudes[name] = param.grad.abs().mean().item()
+        grad_magnitudes_grouped[name].append(param.grad.abs().mean().item())
 
 # Sort by sensitivity
-sorted_layers = sorted(grad_magnitudes.items(), key=lambda x: x[1], reverse=True)
+sorted_layers = sorted(grad_magnitudes_grouped.items(), key=lambda x: x[1], reverse=True)
 
-d = {key:val for key,val in sorted_layers}
-
+# Save to JSON
 with open('modules_by_grad_update.json', 'w', encoding='utf-8') as f:
-    json.dump(d, f, indent=2)
+    json.dump(dict(sorted_layers), f, indent=2)

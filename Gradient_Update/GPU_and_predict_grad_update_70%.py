@@ -99,7 +99,7 @@ tokenized_datasets = dataset.map(tokenize_function, batched=True)
 model = DebertaV2ForSequenceClassification.from_pretrained("microsoft/deberta-v3-small", num_labels=4)
 
 # Load JSON file
-with open('Gradient_Update/modules_by_grad_update.json', 'r') as f:
+with open('modules_by_grad_update.json', 'r') as f:
     modules_dict = json.load(f)
 
 # Convert dict keys to a list
