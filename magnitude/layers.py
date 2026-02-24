@@ -49,16 +49,16 @@ top_params_spec = heapq.nlargest(k, top_params_spec, key=lambda x: x[0])
 
 # Print results
 print("\nTop by L1 norm:")
-for l1_norm, name, shape in top_params_l1:
-    print(f"{name:60} | shape: {shape} | l1_norm: {l1_norm:.6f}")
+for l1_norm, name in top_params_l1:
+    print(f"{name:60} | l1_norm: {l1_norm:.6f}")
 
 print("\nTop by Frobenius norm:")
-for fro_norm, name, shape in top_params_fro:
-    print(f"{name:60} | shape: {shape} | fro_norm: {fro_norm:.6f}")
+for fro_norm, name in top_params_fro:
+    print(f"{name:60} | fro_norm: {fro_norm:.6f}")
 
 print("\nTop by Spectral norm:")
-for spec_norm, name, shape in top_params_spec:
-    print(f"{name:60} | shape: {shape} | spectral_norm: {spec_norm:.6f}")
+for spec_norm, name in top_params_spec:
+    print(f"{name:60} | spectral_norm: {spec_norm:.6f}")
 
 results = {
     "top_l1": {key: val for key, val in top_params_l1},
