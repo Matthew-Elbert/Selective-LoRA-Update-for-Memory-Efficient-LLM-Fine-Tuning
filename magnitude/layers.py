@@ -1,3 +1,4 @@
+import re
 from transformers import DebertaV2Tokenizer, DebertaV2ForSequenceClassification, DataCollatorWithPadding
 import torch
 import heapq
@@ -24,6 +25,7 @@ k = 40  # top-k
 for name, param in model.named_parameters():
     if param.requires_grad and len(param.shape) != 1:
         data = param.data.float()  # cast to float32 to avoid Half precision errors
+        module_name = re.sub(r"\.(weight|bias)$", "", name)
 
         # Compute norms
         l1_norm   = torch.norm(data, p=1).item()
@@ -31,9 +33,9 @@ for name, param in model.named_parameters():
         spec_norm = torch.linalg.norm(data, 2).item()
 
         # Push into each heap
-        heapq.heappush(top_params_l1,   (l1_norm, name, param.shape))
-        heapq.heappush(top_params_fro,  (fro_norm, name, param.shape))
-        heapq.heappush(top_params_spec, (spec_norm, name, param.shape))
+        heapq.heappush(top_params_l1,   (l1_norm, module_name, param.shape))
+        heapq.heappush(top_params_fro,  (fro_norm, module_name, param.shape))
+        heapq.heappush(top_params_spec, (spec_norm, module_name, param.shape))
 
         # Keep heap size at most k
         if len(top_params_l1)   > k: heapq.heappop(top_params_l1)
