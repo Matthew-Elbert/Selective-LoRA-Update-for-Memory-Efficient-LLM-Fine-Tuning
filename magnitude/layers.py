@@ -33,9 +33,9 @@ for name, param in model.named_parameters():
         spec_norm = torch.linalg.norm(data, 2).item()
 
         # Push into each heap
-        heapq.heappush(top_params_l1,   (l1_norm, module_name, param.shape))
-        heapq.heappush(top_params_fro,  (fro_norm, module_name, param.shape))
-        heapq.heappush(top_params_spec, (spec_norm, module_name, param.shape))
+        heapq.heappush(top_params_l1,   (l1_norm, module_name))
+        heapq.heappush(top_params_fro,  (fro_norm, module_name))
+        heapq.heappush(top_params_spec, (spec_norm, module_name))
 
         # Keep heap size at most k
         if len(top_params_l1)   > k: heapq.heappop(top_params_l1)
