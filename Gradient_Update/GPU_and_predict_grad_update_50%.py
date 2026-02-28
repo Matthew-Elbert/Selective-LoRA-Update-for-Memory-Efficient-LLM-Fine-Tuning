@@ -105,24 +105,16 @@ with open('modules_by_grad_update.json', 'r') as f:
 # Convert dict keys to a list
 modules = list(modules_dict.keys())
 
-# Keep only the first 70% of modules
+# Keep only the first 50% of modules
 modules = modules[:round(len(modules) * 0.5)]
 
 
 
 lora_config = LoraConfig(
     r=8,
-    lora_alpha=32,
-    target_modules=[
-        "encoder.layer.5.attention.self.query_proj",
-        "encoder.layer.5.attention.self.key_proj", 
-        "encoder.layer.5.attention.self.value_proj",
-        "encoder.layer.5.attention.output.dense",
-        "encoder.layer.5.intermediate.dense",
-        "encoder.layer.5.output.dense"
-    ],
-    lora_dropout=0,
-    bias="none",
+    lora_alpha=16,
+    target_modules=modules,
+    lora_dropout=0.1
 )
 
 model = prepare_model_for_kbit_training(model)
@@ -157,7 +149,7 @@ training_args = TrainingArguments(
     learning_rate=1e-4,
     per_device_train_batch_size=16,
     per_device_eval_batch_size=16,
-    num_train_epochs=3,
+    num_train_epochs=1,
     weight_decay=0.01,
     eval_strategy="epoch",
     save_strategy="epoch",

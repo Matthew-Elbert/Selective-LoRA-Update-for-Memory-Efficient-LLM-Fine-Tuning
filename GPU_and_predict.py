@@ -138,7 +138,7 @@ training_args = TrainingArguments(
     learning_rate=1e-4,
     per_device_train_batch_size=16,
     per_device_eval_batch_size=16,
-    num_train_epochs=3,
+    num_train_epochs=1,
     weight_decay=0.01,
     eval_strategy="epoch",
     save_strategy="epoch",
@@ -271,7 +271,7 @@ results = {
     'trainable_parameters': sum(p.numel() for p in model.parameters() if p.requires_grad)
 }
 
-with open(f'./{result_dir}/training_results_detailed_test.json', 'w') as f:
+with open(f'./{results_dir}/training_results_detailed_test.json', 'w') as f:
     json.dump(results, f, indent=2)
 
 print(f"\nResults saved to 'training_results_detailed.json'")
