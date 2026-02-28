@@ -139,11 +139,11 @@ def compute_metrics(eval_pred):
 
 # Training arguments
 training_args = TrainingArguments(
-    output_dir=f"./{results_dir}/deberta-v3-small-lora",
+    output_dir=f"./{results_dir}",
     learning_rate=1e-4,
     per_device_train_batch_size=16,
     per_device_eval_batch_size=16,
-    num_train_epochs=3,
+    num_train_epochs=1,
     weight_decay=0.01,
     eval_strategy="epoch",
     save_strategy="epoch",
