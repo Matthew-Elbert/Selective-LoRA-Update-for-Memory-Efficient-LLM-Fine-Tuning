@@ -1,7 +1,7 @@
 import json
 from train_base import train
 
-k = 0.025
+k = 0.5
 
 with open(f'./layer_ranking.json', 'r') as f:
     results = json.load(f)
