@@ -237,8 +237,6 @@ prediction_answers = {
 with open(f'./{results_dir}/prediction_answers_70.json', 'w') as f:
     json.dump(prediction_answers, f, indent=2)
 
-
-
 print(f"\nTEST RESULTS:")
 print(f"Test Accuracy: {test_accuracy:.4f} ({test_accuracy*100:.2f}%)")
 print(f"Test Inference Time: {test_time:.2f} seconds")
