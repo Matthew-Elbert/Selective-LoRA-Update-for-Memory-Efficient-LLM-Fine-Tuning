@@ -229,6 +229,16 @@ test_preds = np.argmax(test_predictions.predictions, axis=1)
 test_labels = test_predictions.label_ids
 test_accuracy = accuracy_score(test_labels, test_preds)
 
+prediction_answers = {
+    'predictions': test_preds.tolist(),
+    'labels': test_labels.tolist()
+}
+
+with open(f'./{results_dir}/prediction_answers_70.json', 'w') as f:
+    json.dump(prediction_answers, f, indent=2)
+
+
+
 print(f"\nTEST RESULTS:")
 print(f"Test Accuracy: {test_accuracy:.4f} ({test_accuracy*100:.2f}%)")
 print(f"Test Inference Time: {test_time:.2f} seconds")
