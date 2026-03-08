@@ -240,9 +240,6 @@ prediction_answers = {
     'labels': test_labels.tolist()
 }
 
-with open(f'./{results_dir}/prediction_answers_50.json', 'w') as f:
-    json.dump(prediction_answers, f, indent=2)
-
 
 with open(f'./{results_dir}/prediction_answers.json', 'w') as f:
     json.dump(prediction_answers, f, indent=2)

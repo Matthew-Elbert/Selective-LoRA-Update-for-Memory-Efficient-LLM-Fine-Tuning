@@ -240,16 +240,9 @@ prediction_answers = {
     'labels': test_labels.tolist()
 }
 
-<<<<<<< HEAD
-with open(f'./{results_dir}/prediction_answers_50.json', 'w') as f:
-    json.dump(prediction_answers, f, indent=2)
-
-
-=======
 with open(f'./{results_dir}/prediction_answers.json', 'w') as f:
     json.dump(prediction_answers, f, indent=2)
 
->>>>>>> b56f91472fa7324862b214a21ab81ba3e31fd566
 print(f"\nTEST RESULTS:")
 print(f"Test Accuracy: {test_accuracy:.4f} ({test_accuracy*100:.2f}%)")
 print(f"Test Inference Time: {test_time:.2f} seconds")
