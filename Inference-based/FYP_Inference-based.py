@@ -286,6 +286,14 @@ print(f"Final Test Accuracy: {test_accuracy*100:.2f}%")
 print(f"Peak GPU Memory DURING TRAINING: {peak_gpu_memory_during_training:.2f} GB")
 print(f"Peak RAM Usage DURING TRAINING: {peak_ram_usage_during_training:.2f} GB")
 
+prediction_answers = {
+        'predictions': test_preds.tolist(),
+        'labels': test_labels.tolist()
+    }
+
+with open(f'./{results_dir}/prediction_answers.json', 'w') as f:
+    json.dump(prediction_answers, f, indent=2)
+
 with open(f'./{results_dir}/gpu_usage_log.json', 'w') as f:
     json.dump(gpu_usage_log, f)
 
