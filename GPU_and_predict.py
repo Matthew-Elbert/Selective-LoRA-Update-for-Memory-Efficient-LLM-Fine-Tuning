@@ -32,7 +32,7 @@ gpu_usage_log = []
 ram_usage_log = []
 
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-results_dir = f'./results_{timestamp}'
+results_dir = f'./results_Full_{timestamp}'
 os.makedirs(results_dir, exist_ok=True)
 
 # Function to monitor peak memory usage DURING TRAINING
@@ -101,18 +101,22 @@ model = DebertaV2ForSequenceClassification.from_pretrained("microsoft/deberta-v3
 lora_config = LoraConfig(
     r=8,
     lora_alpha=16,
-    lora_dropout=0.1,
     target_modules=[
         "query_proj", "key_proj", "value_proj",
         "output.dense",
         "intermediate.dense",
         "pooler.dense", "classifier"
-    ]
+    ],
+    lora_dropout=0.1
 )
 
 model = prepare_model_for_kbit_training(model)
 model = get_peft_model(model, lora_config)
 model.print_trainable_parameters()
+
+for name, param in model.named_parameters():
+    if "lora" in name:
+        print(name)
 
 # Fix dataset variable names
 train_dataset = tokenized_datasets["train"]
@@ -224,6 +228,15 @@ test_preds = np.argmax(test_predictions.predictions, axis=1)
 test_labels = test_predictions.label_ids
 test_accuracy = accuracy_score(test_labels, test_preds)
 
+prediction_answers = {
+    'predictions': test_preds.tolist(),
+    'labels': test_labels.tolist()
+}
+
+
+with open(f'./{results_dir}/prediction_answers.json', 'w') as f:
+    json.dump(prediction_answers, f, indent=2)
+
 print(f"\nTEST RESULTS:")
 print(f"Test Accuracy: {test_accuracy:.4f} ({test_accuracy*100:.2f}%)")
 print(f"Test Inference Time: {test_time:.2f} seconds")
@@ -274,7 +287,7 @@ results = {
 with open(f'./{results_dir}/training_results_detailed_test.json', 'w') as f:
     json.dump(results, f, indent=2)
 
-print(f"\nResults saved to 'training_results_detailed_test.json'")
+print(f"\nResults saved to 'training_results_detailed.json'")
 print(f"Final Test Accuracy: {test_accuracy*100:.2f}%")
 print(f"Peak GPU Memory DURING TRAINING: {peak_gpu_memory_during_training:.2f} GB")
 print(f"Peak RAM Usage DURING TRAINING: {peak_ram_usage_during_training:.2f} GB")
