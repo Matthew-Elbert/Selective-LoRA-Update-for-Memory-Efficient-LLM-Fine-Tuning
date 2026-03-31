@@ -1,0 +1,15 @@
+{
+  "test_accuracy": 0.9239473684210526,
+  "test_accuracy_percentage": 92.39473684210526,
+  "validation_accuracy": 0.922125,
+  "training_time_seconds": 1870.975923538208,
+  "test_inference_time_seconds": 61.2626519203186,
+  "peak_gpu_memory_during_training_gb": 4.34933614730835,
+  "peak_ram_usage_during_training_gb": 22.805889129638672,
+  "gpu_memory_increase_during_training_gb": 3.8127894401550293,
+  "ram_increase_during_training_gb": 2.2010040283203125,
+  "baseline_ram_gb": 20.60488510131836,
+  "baseline_gpu_gb": 0.5365467071533203,
+  "total_parameters": 143621188,
+  "trainable_parameters": 1723200
+}

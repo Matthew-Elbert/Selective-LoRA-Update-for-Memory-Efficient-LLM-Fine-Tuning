@@ -102,10 +102,9 @@ lora_config = LoraConfig(
     r=8,
     lora_alpha=16,
     target_modules=[
-        "query_proj", "key_proj", "value_proj",
-        "output.dense",
-        "intermediate.dense",
-        "pooler.dense", "classifier"
+	"query_proj","key_proj","value_proj",
+	"output.dense", "intermediate.dense", "pooler.dense", "classifier",
+	"rel_embeddings", "word_embeddings"
     ],
     lora_dropout=0.1
 )
